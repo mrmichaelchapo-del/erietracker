@@ -5,3 +5,8 @@ here is why:
 - Lake Erie was responsible for a 10 year old girl UNCONSCIOUS from the lake
 
 - People are actively building tools to protect against danger
+
+ErieTracker fixes this by monitoring any NWS alerts about Lake Erie. 
+
+## Try it!
+[Try it out!](https://erie.gg)
