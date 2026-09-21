@@ -71,6 +71,101 @@
   <h3>🌧️ Showers</h3>
   <p>Scattered showers may reduce visibility and make conditions more difficult on Lake Erie.</p>
 </div>
+<script>
+async function loadNWSWarnings() {
+  const container = document.getElementById("warnings");
+
+  try {
+    const response = await fetch(
+      "https://api.weather.gov/alerts/active?area=OH",
+      {
+        headers: {
+          "Accept": "application/geo+json"
+        }
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("NWS request failed");
+    }
+
+    const data = await response.json();
+
+    // Keep alerts relevant to Lake Erie and its Ohio shoreline.
+    const lakeErieAlerts = data.features.filter(alert => {
+      const p = alert.properties;
+
+      const text = [
+        p.event,
+        p.headline,
+        p.description,
+        p.areaDesc,
+        p.geocode?.UGC?.join(" ")
+      ].join(" ").toLowerCase();
+
+      return (
+        text.includes("lake erie") ||
+        text.includes("erie") ||
+        text.includes("marine") ||
+        text.includes("rip current") ||
+        text.includes("beach hazards")
+      );
+    });
+
+    container.innerHTML = "";
+
+    if (lakeErieAlerts.length === 0) {
+      container.innerHTML = `
+        <div class="warning-card advisory">
+          <h3>✅ No Active Lake Erie Alerts</h3>
+          <p>No current NWS alerts matching Lake Erie were found.</p>
+        </div>
+      `;
+      return;
+    }
+
+    lakeErieAlerts.forEach(alert => {
+      const p = alert.properties;
+
+      let className = "advisory";
+      let icon = "⚠️";
+
+      if (
+        p.event?.toLowerCase().includes("warning") ||
+        p.severity?.toLowerCase() === "severe"
+      ) {
+        className = "warning";
+        icon = "🚨";
+      }
+
+      const card = document.createElement("div");
+      card.className = `warning-card ${className}`;
+
+      card.innerHTML = `
+        <h3>${icon} ${p.event || "NWS Alert"}</h3>
+        <p>${p.headline || "Active National Weather Service alert."}</p>
+      `;
+
+      container.appendChild(card);
+    });
+
+  } catch (error) {
+    console.error("NWS:", error);
+
+    container.innerHTML = `
+      <div class="warning-card warning">
+        <h3>⚠️ NWS Data Unavailable</h3>
+        <p>ErieTracker could not retrieve the current NWS alerts.</p>
+      </div>
+    `;
+  }
+}
+
+loadNWSWarnings();
+
+// Refresh every 5 minutes.
+setInterval(loadNWSWarnings, 5 * 60 * 1000);
+</script>
 <p>Brought to you by ErieTracker</p>
   <footer>
   <h6>Copyright © 2026 ErieTracker</h6>
