@@ -1,0 +1,1 @@
+Lake Erie is not safe today — and that's why people are building tools to protect against it.
